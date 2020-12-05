@@ -4,15 +4,38 @@ using UnityEngine;
 
 public class PlayerController : MonoBehaviour
 {
-    [SerializeField] 
-    private Rigidbody _hookRb;
-    [SerializeField] 
+    private Rigidbody _hookRbLeft;  
+    private Rigidbody _hookRbRight;
     private Rigidbody _playerRb;
+    private GameManager _gameManager;
     private float _maxSpring = 2.0f;
-    private float _releaseTime = 0.15f;
     private bool _isTouched = false;
     private float _objectCoordZ;
     private Vector3 _mouseOffset;
+    private Vector3 _hookRbMidPoint;
+    [SerializeField]
+    private GameObject _spherePrefab;
+    public bool HangshotIsEmpty { get; set; }
+    private float _reloadSlingshotTime = 2.0f;
+    private float _lastReloadTime = -2.0f;
+
+    private void Start()
+    {
+        _playerRb = GameObject.FindWithTag("Player").GetComponent<Rigidbody>();
+        _hookRbLeft = GameObject.FindWithTag("HookRight").GetComponent<Rigidbody>();
+        _hookRbRight = GameObject.FindWithTag("HookLeft").GetComponent<Rigidbody>();
+        _gameManager = GameObject.FindWithTag("GameManager").GetComponent<GameManager>();
+        calculateHookMidPoint();
+        Instantiate(_spherePrefab, _spherePrefab.transform.position, Quaternion.identity);
+        HangshotIsEmpty = false;
+    }
+
+    private void calculateHookMidPoint()
+    {
+        float _rBHalfDistance = (Vector3.Distance(_hookRbLeft.transform.position, _hookRbRight.transform.position)) / 2.0f;
+        _hookRbMidPoint = _hookRbRight.transform.position + new Vector3(0, 0, _rBHalfDistance);
+    }
+
 
     // Update is called once per frame
     void Update()
@@ -20,14 +43,14 @@ public class PlayerController : MonoBehaviour
         if (_isTouched)
         {
             
-           /* if (Vector3.Distance(_mousePos, _hookRb.position) > _maxSpring)
+            if (Vector3.Distance(GetMouseAsWorldPoint(), _hookRbMidPoint) > _maxSpring)
             {
-                //_playerRb.position = _hookRb.position + (_mousePos - _hookRb.position).normalized * _maxSpring;
+                transform.position = _hookRbMidPoint + (_mouseOffset - _playerRb.position).normalized * _maxSpring;
             } 
             else
             {
                OnMouseDrag();
-            } */
+            } 
         }
         
 
@@ -45,7 +68,8 @@ public class PlayerController : MonoBehaviour
     {
         _isTouched = false;
         _playerRb.isKinematic = false;
-        StartCoroutine(ReleaseHook());
+        HangshotIsEmpty = true;
+        ReloadSlingshot();
     }
 
     private Vector3 GetMouseAsWorldPoint()
@@ -60,14 +84,15 @@ public class PlayerController : MonoBehaviour
         transform.position = GetMouseAsWorldPoint() + _mouseOffset;
     }
 
-    IEnumerator ReleaseHook()
+    private void ReloadSlingshot()
     {
-        yield return new WaitForSeconds(_releaseTime);
-      
-        this.enabled = false;
+        float _elapsedTime = Time.time - _lastReloadTime;
 
-        //GetComponent<SpringJoint>().breakForce = 0;
-        // next Sphere
+        if (HangshotIsEmpty && (_elapsedTime >= _reloadSlingshotTime))
+        {
+            Instantiate(_spherePrefab, _spherePrefab.transform.position, Quaternion.identity);
+            HangshotIsEmpty = false;
+            _lastReloadTime = Time.time;
+        }
     }
-
 }
