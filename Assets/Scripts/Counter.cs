@@ -2,22 +2,18 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.UI;
+using TMPro;
 
 public class Counter : MonoBehaviour
 {
-    public Text CounterText;
+    public TextMeshProUGUI _counterText;
 
-    private int Count = 0;
+    private int _count = 0;
 
-    private void Start()
-    {
-        Count = 0;
-    }
-
+    
     private void OnTriggerEnter(Collider other)
     {
-        Count += 1;
-        CounterText.text = "Count : " + Count;
+        _count += 1;
+        _counterText.text = "Count: " + _count;
     }
 }
