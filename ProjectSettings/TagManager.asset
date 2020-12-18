@@ -8,6 +8,7 @@ TagManager:
   - HookRight
   - GameManager
   - Sphere
+  - Menu
   layers:
   - Default
   - TransparentFX
